@@ -30,6 +30,11 @@ builder.Services.AddDbContext<FlightContext>(options =>
         });
 });
 
+builder.Services.AddCors(c =>
+{
+    c.AddPolicy("CorsPolicy", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
+
 // Register dependencies
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(CreateFlightHandler).GetTypeInfo().Assembly));
@@ -55,6 +60,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+app.UseCors("CorsPolicy");
 
 app.MapControllerRoute(
     name: "default",
