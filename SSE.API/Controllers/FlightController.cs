@@ -7,6 +7,7 @@ using SSE.Application.Commands;
 using SSE.Application.Queries;
 using SSE.Application.Response;
 using SSE.Core.Entities;
+using System.Text;
 
 namespace SSE.API.Controllers
 {
@@ -24,19 +25,25 @@ namespace SSE.API.Controllers
         }
 
         [HttpGet("SSE")]
-        public async Task GetAllFlightSSEAsync(CancellationToken ct = default)
+        public async Task GetAllFlightSSEAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Get all flights");
-            var response = Response;
-            response.Headers.Add("Content-Type", "text/event-stream");
+            Response.Headers.Add("Content-Type", "text/event-stream");
+            Response.Headers.Add("Cache-Control", "no-cache");
 
-            var flights = await _mediator.Send(new GetAllFlightQuery(), ct);
-            var jsonFlights = JsonConvert.SerializeObject(flights);
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                _logger.LogInformation($"Get all flights SSE {DateTime.UtcNow}");
+                var flights = await _mediator.Send(new GetAllFlightQuery(), stoppingToken);
+                var jsonFlights = JsonConvert.SerializeObject(flights);
 
-            await response.WriteAsync(jsonFlights);
-            await response.Body.FlushAsync();
+                var bytes = Encoding.ASCII.GetBytes($"data: {jsonFlights}\n\n");
 
-            await Task.Delay(5 * 1000);
+                await Response.Body.WriteAsync(bytes, stoppingToken);
+                await Response.Body.FlushAsync();
+                Response.Body.Close();
+
+                await Task.Delay(5 * 1000);
+            }
         }
 
         [HttpPost("Create")]

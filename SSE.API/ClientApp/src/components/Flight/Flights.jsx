@@ -9,15 +9,22 @@ export class Flights extends Component {
             flights: [],
             loading: true
         };
-
+        this.eventSource = null;
         this.onUserCreate = this.onUserCreate.bind(this);
         this.onUserDelete = this.onUserDelete.bind(this);
         this.onSubcribeSSE = this.onSubcribeSSE.bind(this);
+        this.onUnsubcribeSSE = this.onUnsubcribeSSE.bind(this);
+        this.updateFlightState = this.updateFlightState.bind(this);
     }
 
 
     componentDidMount() {
         this.onSubcribeSSE();
+    }
+
+    componentWillUnmount() {
+        this.onUnsubcribeSSE()
+        this.eventSource.removeEventListener('flightStateUpdate', this.updateFlightState)
     }
 
     onUserCreate() {
@@ -36,30 +43,40 @@ export class Flights extends Component {
         history.push('/admin/user/delete/' + id);
     }
 
+    updateFlightState(flights) {
+        this.setState(Object.assign({}, {data: flights}));
+    }
+
     onSubcribeSSE() {
-        const eventSource = new EventSource(BASE_URL + 'api/flight/sse', { withCredentials: false } );
+        this.eventSource = new EventSource(BASE_URL + 'api/flight/sse', { withCredentials: false } );
 
-        eventSource.onmessage = (event) => {
+        this.eventSource.onmessage = (event) => {
             console.log('receive data')
-            console.log(event.data)
+            const data = JSON.parse(event.data)
+            console.log(data)
         }
 
-        eventSource.onopen = (event) => {
-            console.log('Start receiving message');
+        this.eventSource.onopen = (event) => {
+            console.log('Start receiving message')
         }
 
-        eventSource.onerror = (event) => {
+        this.eventSource.onerror = (event) => {
             console.log('error sse')
             console.log(event)
             if (event.eventPhase === EventSource.CLOSED) {
                 console.log('Connection closed');
-                eventSource.close();
+                this.eventSource.close();
             }
         }
 
-        eventSource.addEventListener('close', (event) => {
-            eventSource.close()
+        this.eventSource.addEventListener('flightStateUpdate', (event) => {
+            this.updateFlightState(JSON.parse(event.data))
         });
+    }
+
+    onUnsubcribeSSE() {
+        console.log('Close SSE')
+        this.eventSource.close()
     }
 
     getAllUsersData() {
