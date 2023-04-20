@@ -1,12 +1,14 @@
 import { Component } from "react";
 import { getData } from "../../services/AccessAPI";
 import { BASE_URL } from "../../services/Settings";
+import { FlightForm } from "./FlightForm";
 
 export class Flights extends Component {
     constructor(props) {
         super(props);
         this.state = {
             flights: [],
+            selectedFlight: null,
             loading: true
         };
         this.eventSource = null;
@@ -44,7 +46,7 @@ export class Flights extends Component {
     }
 
     updateFlightState(flights) {
-        this.setState(Object.assign({}, {data: flights}));
+        this.setState(Object.assign({}, {flights: flights}));
     }
 
     onSubcribeSSE() {
@@ -53,6 +55,8 @@ export class Flights extends Component {
         this.eventSource.onmessage = (event) => {
             console.log('receive data')
             const data = JSON.parse(event.data)
+            this.setState({loading: false});
+            this.updateFlightState(data)
             console.log(data)
         }
 
@@ -93,26 +97,28 @@ export class Flights extends Component {
 
     }
 
-    renderAllUsersTable(users) {
+    renderAllFlightTable(flights) {
         return (
             <table className="table table-striped">
                 <thead>
                     <tr>
-                        <th>Full Name</th>
-                        <th>User Name</th>
-                        <th>Email</th>
-                        <th>Actions</th>
+                        <th>Origin</th>
+                        <th>Flight Code</th>
+                        <th>Arrival</th>
+                        <th>State</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {
-                        users.map(user => (
-                            <tr key={user.id}>
-                                <td>{user.fullName}</td>
-                                <td>{user.userName}</td>
-                                <td>{user.email}</td>
-                                <td><button onClick={() => this.onUserEdit(user.id)} className="btn btn-success">Edit</button> ||
-                                    <button onClick={() => this.onUserDelete(user.id)} className="btn btn-danger">Delete</button></td>
+                        flights.map(flight => (
+                            <tr key={flight.id}>
+                                <td>{flight.origin}</td>
+                                <td>{flight.flightCode}</td>
+                                <td>{flight.arrival}</td>
+                                <td>{flight.state}</td>
+                                <td><button onClick={() => this.onUserEdit(flight.id)} className="btn btn-success">Edit</button> ||
+                                    <button onClick={() => this.onUserDelete(flight.id)} className="btn btn-danger">Delete</button></td>
                             </tr>
                         ))
                     }
@@ -127,13 +133,14 @@ export class Flights extends Component {
                 <em>Loading...</em>
             </p>
         ) : (
-            this.renderAllUsersTable(this.state.users)
+            this.renderAllFlightTable(this.state.flights)
         )
 
         return (
             <div>
-                <h3>List of Users</h3>
+                <h3>List of Flights</h3>
                 <button onClick={() => this.onUserCreate()} className="btn btn-primary">Create new user</button>
+                <FlightForm flight={this.state.selectedFlight} />
                 {content}
             </div>
         );

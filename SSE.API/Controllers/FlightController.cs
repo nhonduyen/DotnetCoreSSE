@@ -48,7 +48,7 @@ namespace SSE.API.Controllers
 
         [HttpPost("Create")]
         [ProducesDefaultResponseType(typeof(bool))]
-        public async Task<ActionResult> CreateUser(CreateFlightCommand command, CancellationToken ct = default)
+        public async Task<ActionResult> CreateFlight(CreateFlightCommand command, CancellationToken ct = default)
         {
             _logger.LogInformation("Create Flight");
             return Ok(await _mediator.Send(command, ct));
