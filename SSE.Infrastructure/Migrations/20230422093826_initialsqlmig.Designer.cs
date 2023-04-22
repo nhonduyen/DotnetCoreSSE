@@ -12,8 +12,8 @@ using SSE.Infrastructure.Data;
 namespace SSE.Infrastructure.Migrations
 {
     [DbContext(typeof(FlightContext))]
-    [Migration("20230419105049_updatemodel")]
-    partial class updatemodel
+    [Migration("20230422093826_initialsqlmig")]
+    partial class initialsqlmig
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -59,7 +59,7 @@ namespace SSE.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Flight");
                 });
 #pragma warning restore 612, 618
         }

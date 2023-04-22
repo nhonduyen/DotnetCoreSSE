@@ -7,11 +7,11 @@ export class FlightForm extends Component {
       super(props);
       this.state = {
         flight: {
-            id: null,
-            origin: null,
-            flightCode: null,
-            arrival: null,
-            state: null
+            Id: null,
+            Origin: null,
+            FlightCode: null,
+            Arrival: null,
+            State: null
         }
       };
   
@@ -21,17 +21,13 @@ export class FlightForm extends Component {
     }
 
     componentDidMount() {
-        if (this.props.selectedFlight) {
-            this.setState({ flight: this.props.selectedFlight})
-        }
     }
+
 
     handleInputChange = (event) => {
         const target = event.target;
         const value = target.value;
         const name = target.name;
-
-        console.log(name)
 
         this.setState({
             ...this.state,
@@ -40,11 +36,11 @@ export class FlightForm extends Component {
               [name]: value
             },
         })
-        console.log(value)
     }
   
-    handleUpdateFlight() {
-        
+    async handleUpdateFlight() {
+        const endPoint = 'api/flight/editflight/' + this.state.flight.Id 
+        await postData(endPoint, this.state.flight)
     }
   
     async handleCreateFlight() {
@@ -58,23 +54,23 @@ export class FlightForm extends Component {
               <div className="form-row">
                   <div className="form-group col">
                       <label htmlFor="Origin">Origin</label>
-                      <input type="text" name="origin" className="form-control" id="txtOrigin" placeholder="Origin" value={this.state.flight.origin} onChange={this.handleInputChange} />
+                      <input type="text" name="Origin" className="form-control" id="txtOrigin" placeholder="Origin" value={this.props.flight?.Origin || ''} onChange={this.handleInputChange} />
                   </div>
                   <div className="form-group col">
                       <label htmlFor="txtFlightCode">Flight Code</label>
-                      <input type="text" name="flightCode" className="form-control" id="txtFlightCode" placeholder="Flight Code" value={this.state.flight.flightCode} onChange={this.handleInputChange} />
+                      <input type="text" name="FlightCode" className="form-control" id="txtFlightCode" placeholder="Flight Code" value={this.props.flight?.FlightCode || ''} onChange={this.handleInputChange} />
                   </div>
               </div>
               <div className="form-group">
                   <label htmlFor="txtArrival">Arrival</label>
-                  <input type="text" name="arrival" class="form-control" id="txtArrival" placeholder="Arrival" value={this.state.flight.arrival} onChange={this.handleInputChange} />
+                  <input type="text" name="Arrival" class="form-control" id="txtArrival" placeholder="Arrival" value={this.props.flight?.Arrival || ''} onChange={this.handleInputChange} />
               </div>
               <div className="form-group">
                   <label htmlFor="txtState">State</label>
-                  <input type="text" name="state" className="form-control" id="txtState" placeholder="State" value={this.state.flight.state} onChange={this.handleInputChange} />
+                  <input type="text" name="State" className="form-control" id="txtState" placeholder="State" value={this.props?.State || ''} onChange={this.handleInputChange} />
               </div>
-              <button type="button" class="btn btn-primary" onClick={this.handleUpdateFlight}>Save</button>
-              <button type="button" class="btn btn-info" onClick={this.handleCreateFlight}>Create New</button>
+              <button type="button" className="btn btn-primary" onClick={this.handleUpdateFlight}>Save</button>
+              <button type="button" className="btn btn-info" onClick={this.handleCreateFlight}>Create New</button>
           </form>
           
       );

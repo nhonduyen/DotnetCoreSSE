@@ -56,7 +56,7 @@ namespace SSE.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Flight");
                 });
 #pragma warning restore 612, 618
         }

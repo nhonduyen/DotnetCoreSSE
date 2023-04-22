@@ -1,7 +1,6 @@
 import { Component } from "react";
-import { getData } from "../../services/AccessAPI";
 import { BASE_URL } from "../../services/Settings";
-import { FlightForm } from "./FlightForm";
+import { deleteData } from "../../services/AccessAPI";
 
 export class Flights extends Component {
     constructor(props) {
@@ -12,8 +11,8 @@ export class Flights extends Component {
             loading: true
         };
         this.eventSource = null;
-        this.onUserCreate = this.onUserCreate.bind(this);
-        this.onUserDelete = this.onUserDelete.bind(this);
+        this.onFlightEdit = this.onFlightEdit.bind(this);
+        this.onFlightCreate = this.onFlightCreate.bind(this);
         this.onSubcribeSSE = this.onSubcribeSSE.bind(this);
         this.onUnsubcribeSSE = this.onUnsubcribeSSE.bind(this);
         this.updateFlightState = this.updateFlightState.bind(this);
@@ -26,38 +25,41 @@ export class Flights extends Component {
 
     componentWillUnmount() {
         this.onUnsubcribeSSE()
-        this.eventSource.removeEventListener('flightStateUpdate', this.updateFlightState)
     }
 
-    onUserCreate() {
+    onFlightCreate() {
         const { history } = this.props;
-        history.push('/admin/user/create');
+        history.push('flight/create/');
     }
 
 
-    onUserEdit(id) {
+    onFlightEdit(id) {
         const { history } = this.props;
-        history.push('/admin/user/edit/' + id);
+        history.push('flight/edit/' + id);
     }
 
-    onUserDelete(id) {
-        const { history } = this.props;
-        history.push('/admin/user/delete/' + id);
+    async onFlightDelete(id) {
+        const endPoint = 'api/flight/delete/' + id
+        const result = await deleteData(endPoint)
+        if (result) {
+            console.log('delete success ' + id)
+        }
     }
 
     updateFlightState(flights) {
-        this.setState(Object.assign({}, {flights: flights}));
+        this.setState({
+            flights: flights
+        }, () => console.log(this.state.flights));
     }
 
     onSubcribeSSE() {
         this.eventSource = new EventSource(BASE_URL + 'api/flight/sse', { withCredentials: false } );
 
         this.eventSource.onmessage = (event) => {
-            console.log('receive data')
             const data = JSON.parse(event.data)
+            console.log('receive data', data)
             this.setState({loading: false});
             this.updateFlightState(data)
-            console.log(data)
         }
 
         this.eventSource.onopen = (event) => {
@@ -72,29 +74,11 @@ export class Flights extends Component {
                 this.eventSource.close();
             }
         }
-
-        this.eventSource.addEventListener('flightStateUpdate', (event) => {
-            this.updateFlightState(JSON.parse(event.data))
-        });
     }
 
     onUnsubcribeSSE() {
         console.log('Close SSE')
         this.eventSource.close()
-    }
-
-    getAllUsersData() {
-        getData('api/User/GetAll').then(
-            (result) => {
-                if (result) {
-                    this.setState({
-                        users: result,
-                        loading: false
-                    });
-                }
-            }
-        );
-
     }
 
     renderAllFlightTable(flights) {
@@ -112,13 +96,13 @@ export class Flights extends Component {
                 <tbody>
                     {
                         flights.map(flight => (
-                            <tr key={flight.id}>
-                                <td>{flight.origin}</td>
-                                <td>{flight.flightCode}</td>
-                                <td>{flight.arrival}</td>
-                                <td>{flight.state}</td>
-                                <td><button onClick={() => this.onUserEdit(flight.id)} className="btn btn-success">Edit</button> ||
-                                    <button onClick={() => this.onUserDelete(flight.id)} className="btn btn-danger">Delete</button></td>
+                            <tr key={flight.Id}>
+                                <td>{flight.Origin}</td>
+                                <td>{flight.FlightCode}</td>
+                                <td>{flight.Arrival}</td>
+                                <td>{flight.State}</td>
+                                <td><button id="btnEdit" onClick={() => this.onFlightEdit(flight.Id)} className="btn btn-success">Edit</button> ||
+                                    <button id="btnDelete" onClick={() => this.onFlightDelete(flight.Id)} className="btn btn-danger">Delete</button></td>
                             </tr>
                         ))
                     }
@@ -139,8 +123,7 @@ export class Flights extends Component {
         return (
             <div>
                 <h3>List of Flights</h3>
-                <button onClick={() => this.onUserCreate()} className="btn btn-primary">Create new user</button>
-                <FlightForm flight={this.state.selectedFlight} />
+                <button onClick={() => this.onFlightCreate()} className="btn btn-primary">Create New</button>
                 {content}
             </div>
         );

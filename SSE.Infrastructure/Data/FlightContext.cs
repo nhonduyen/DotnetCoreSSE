@@ -10,6 +10,6 @@ namespace SSE.Infrastructure.Data
 
         }
 
-        public DbSet<Flight> Customers { get; set; }
+        public DbSet<Flight> Flight { get; set; }
     }
 }

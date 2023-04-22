@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using SSE.Application.Commands;
+using SSE.Application.Mapper;
 using SSE.Application.Queries;
 using SSE.Application.Response;
 using SSE.Core.Entities;
@@ -48,7 +49,7 @@ namespace SSE.API.Controllers
 
         [HttpPost("Create")]
         [ProducesDefaultResponseType(typeof(bool))]
-        public async Task<ActionResult> CreateFlight(CreateFlightCommand command, CancellationToken ct = default)
+        public async Task<ActionResult<FlightResponse>> CreateFlight(CreateFlightCommand command, CancellationToken ct = default)
         {
             _logger.LogInformation("Create Flight");
             return Ok(await _mediator.Send(command, ct));
@@ -56,7 +57,7 @@ namespace SSE.API.Controllers
 
         [HttpGet("GetAll")]
         [ProducesDefaultResponseType(typeof(List<FlightResponse>))]
-        public async Task<IActionResult> GetAllFlightAsync(CancellationToken ct = default)
+        public async Task<IActionResult> GetAllFlightAsync(CancellationToken ct)
         {
             _logger.LogInformation("Get all flights");
             return Ok(await _mediator.Send(new GetAllFlightQuery(), ct));
@@ -64,29 +65,30 @@ namespace SSE.API.Controllers
 
         [HttpDelete("Delete/{flightId}")]
         [ProducesDefaultResponseType(typeof(bool))]
-        public async Task<IActionResult> Delete(string flightId, CancellationToken ct = default)
+        public async Task<IActionResult> Delete(string flightId, CancellationToken ct)
         {
-            _logger.LogInformation($"Delete user {flightId}");
+            _logger.LogInformation($"Delete flight {flightId}");
             var result = await _mediator.Send(new DeleteFlightCommand(new Guid(flightId)), ct);
             return Ok(result);
         }
 
         [HttpGet("GetFlightDetails/{flightId}")]
         [ProducesDefaultResponseType(typeof(FlightResponse))]
-        public async Task<IActionResult> GetFlightDetails(string flightId, CancellationToken ct = default)
+        public async Task<ActionResult<FlightResponse>> GetFlightDetails(string flightId, CancellationToken ct)
         {
-            _logger.LogInformation($"Get user {flightId}");
-            var result = await _mediator.Send(new GetFlightByIdQuery(new Guid(flightId)), ct);
-            return Ok(result);
+            _logger.LogInformation($"Get flight {flightId}");
+            var flight = await _mediator.Send(new GetFlightByIdQuery(new Guid(flightId)), ct);
+            var flightResponse = FlightMapper.Mapper.Map<FlightResponse>(flight);
+            return Ok(flightResponse);
         }
 
         [HttpPut("EditFlight/{id}")]
         [ProducesDefaultResponseType(typeof(bool))]
-        public async Task<ActionResult> Edit(string id, [FromBody] EditFlightCommand command, CancellationToken ct = default)
+        public async Task<ActionResult> Edit(string id, [FromBody] EditFlightCommand command, CancellationToken ct)
         {
             if (id == command.Id.ToString())
             {
-                _logger.LogInformation($"Get user profilr {id}");
+                _logger.LogInformation($"Get flight {id}");
                 var result = await _mediator.Send(command, ct);
                 return Ok(result);
             }
