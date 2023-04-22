@@ -35,9 +35,10 @@ namespace SSE.API.Controllers
             {
                 _logger.LogInformation($"Get all flights SSE {DateTime.UtcNow}");
                 var flights = await _mediator.Send(new GetAllFlightQuery(), stoppingToken);
-                var jsonFlights = JsonConvert.SerializeObject(flights);
+                var flightsResponse = FlightMapper.Mapper.Map<List<FlightResponse>>(flights);
+                var jsonFlights = JsonConvert.SerializeObject(flightsResponse);
 
-                var bytes = Encoding.ASCII.GetBytes($"data: {jsonFlights}\n\n");
+                var bytes = Encoding.UTF8.GetBytes($"data: {jsonFlights}\n\n");
 
                 await Response.Body.WriteAsync(bytes, stoppingToken);
                 await Response.Body.FlushAsync();

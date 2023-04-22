@@ -31,8 +31,6 @@ export class Create extends Component {
               [name]: value
             }
         })
-
-        console.log(this.state.flight)
     }
   
     async handleCreateFlight(e) {
